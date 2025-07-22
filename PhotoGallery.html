@@ -1,71 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Photo Gallery Add-in</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 16px; background: #f8f8fc; }
+        #container { max-width: 420px; margin: auto; }
+        .section { margin-bottom: 20px; }
+        .form-row { margin-bottom: 10px; }
+        #preview img { max-height: 80px; margin: 4px; border-radius: 8px; border: 1px solid #ccc;}
+        #insert { padding: 8px 16px; background: #2b579a; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        #status { margin-top: 10px; min-height: 20px; color: #e74c3c; font-weight: bold;}
+    </style>
+</head>
+<body>
 <div id="container">
-	<h2 style="color: #2b579a;">📸 Photo Gallery</h2>
-
-	<div class="section">
-		<h3>Select Images</h3>
-		<input type="file" id="imageInput" multiple accept="image/*" />
-		<div id="preview"></div>
-	</div>
-
-	<div class="section">
-		<h3>Gallery Layout</h3>
-		<div class="form-row">
-			<label>Columns: 
+    <h2 style="color: #2b579a;">📸 Photo Gallery</h2>
+    <div class="section">
+        <h3>Select Images</h3>
+        <input type="file" id="imageInput" multiple accept="image/*" />
+        <div id="preview"></div>
+    </div>
+    <div class="section">
+        <h3>Gallery Layout</h3>
+        <div class="form-row">
+            <label>Columns:
                 <select id="cols">
                     <option value="1">1 Across</option>
                     <option value="2">2 Across</option>
                     <option value="3" selected>3 Across</option>
                     <option value="4">4 Across</option>
-                    <option value="5">5 Across</option>
-                    <option value="6">6 Across</option>
                 </select>
             </label>
-			<label>Cell Spacing (px): 
+            <label>Cell Spacing (px):
                 <input type="number" id="spacing" value="10" min="0" max="50" />
             </label>
-		</div>
-	</div>
-
-	<div class="section">
-		<h3>Caption Settings</h3>
-		<label><input type="checkbox" id="captions" checked /> Show captions below images</label>
-
-		<div id="captionOptions" style="margin-top: 10px;">
-			<div class="form-row">
-				<label>Caption Type:
+        </div>
+    </div>
+    <div class="section">
+        <h3>Caption Settings</h3>
+        <label><input type="checkbox" id="captions" checked /> Show captions below images</label>
+        <div id="captionOptions" style="margin-top: 10px;">
+            <div class="form-row">
+                <label>Caption Type:
                     <select id="captionType">
                         <option value="filename">Filename (no extension)</option>
                         <option value="number">Sequential numbers</option>
                         <option value="prefix">Custom prefix + number</option>
                     </select>
                 </label>
-			</div>
-
-			<div class="form-row" id="prefixRow" style="display: none;">
-				<label>Prefix: 
+            </div>
+            <div class="form-row" id="prefixRow" style="display: none;">
+                <label>Prefix:
                     <input type="text" id="prefix" value="Image" />
                 </label>
-				<label>Start Number: 
+                <label>Start Number:
                     <input type="number" id="startNum" value="1" min="0" />
                 </label>
-			</div>
-
-			<div class="form-row">
-				<label>Caption Alignment:
+            </div>
+            <div class="form-row">
+                <label>Caption Alignment:
                     <select id="captionAlign">
                         <option value="center" selected>Center</option>
                         <option value="left">Left</option>
                         <option value="right">Right</option>
                     </select>
                 </label>
-				<label>Font Size:
+                <label>Font Size:
                     <input type="number" id="fontSize" value="10" min="8" max="16" />
                 </label>
-			</div>
-		</div>
-	</div>
-
-	<button id="insert">Create Photo Gallery</button>
-
-	<div id="status"></div>
+            </div>
+        </div>
+    </div>
+    <button id="insert">Create Photo Gallery</button>
+    <div id="status"></div>
 </div>
+
+<script>
+    // Preview and store selected images
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    let images = []; // {name, dataURL}
+
+    imageInput.addEventListener('change', function () {
+        images = [];
+        preview.innerHTML = '';
+        Array.from(this.files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                images.push({name: file.name, dataURL: e.target.result});
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.title = file.name;
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Caption type change
+    document.getElementById('captionType').addEventListener('change', function() {
+        document.getElementById('prefixRow').style.display = (this.value === 'prefix') ? '' : 'none';
+    });
+
+    // Create gallery and insert into Word
+    document.getElementById('insert').onclick = function () {
+        if (images.length === 0) {
+            showStatus('Please select at least one image.');
+            return;
+        }
+        const cols = parseInt(document.getElementById('cols').value);
+        const spacing = parseInt(document.getElementById('spacing').value);
+        const captionsEnabled = document.getElementById('captions').checked;
+        const captionType = document.getElementById('captionType').value;
+        const captionAlign = document.getElementById('captionAlign').value;
+        const fontSize = document.getElementById('fontSize').value;
+        let prefix = document.getElementById('prefix').value;
+        let startNum = parseInt(document.getElementById('startNum').value) || 1;
+
+        // Build captions
+        function getCaption(idx, name) {
+            if (!captionsEnabled) return '';
+            if (captionType === 'filename') {
+                return name.replace(/\.[^/.]+$/, "");
+            } else if (captionType === 'number') {
+                return (idx + 1).toString();
+            } else if (captionType === 'prefix') {
+                return prefix + ' ' + (startNum + idx);
+            }
+            return '';
+        }
+
+        // Build HTML for table
+        let html = `<table style="border-collapse: separate; border-spacing: ${spacing}px;"><tbody>`;
+        for (let i = 0; i < images.length; i += cols) {
+            html += '<tr>';
+            for (let j = 0; j < cols; j++) {
+                const idx = i + j;
+                if (idx < images.length) {
+                    html += `<td style="text-align: center; vertical-align: top;">`;
+                    html += `<img src="${images[idx].dataURL}" style="max-width:130px;max-height:130px;display:block;margin:auto;border-radius:7px;border:1px solid #ccc;">`;
+                    if (captionsEnabled) {
+                        html += `<div style="text-align:${captionAlign};font-size:${fontSize}px;margin-top:2px;">${getCaption(idx, images[idx].name)}</div>`;
+                    }
+                    html += `</td>`;
+                } else {
+                    html += `<td></td>`;
+                }
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+
+        // Insert into Word using Office.js API
+        Office.onReady(() => {
+            Word.run(function (context) {
+                context.document.body.insertHtml(html, Word.InsertLocation.end);
+                return context.sync();
+            }).then(() => {
+                showStatus("Gallery inserted!");
+            }).catch(function (error) {
+                showStatus("Error: " + error.message);
+                if (error instanceof OfficeExtension.Error) {
+                    showStatus("Debug info: " + JSON.stringify(error.debugInfo));
+                }
+            });
+        });
+    };
+
+    function showStatus(msg) {
+        document.getElementById('status').innerText = msg;
+    }
+</script>
+</body>
+</html>
