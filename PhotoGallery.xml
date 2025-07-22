@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="TaskPaneApp">
+  
+  <Id>e3f4a2b1-9876-5432-1098-7654321abcde</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Photo Gallery Add-in</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  
+  <DisplayName DefaultValue="Photo Gallery" />
+  <Description DefaultValue="Create beautiful photo galleries in Word documents with automatic layout and captions." />
+  
+  <IconUrl DefaultValue="https://via.placeholder.com/32/2b579a/ffffff?text=PG" />
+  <HighResolutionIconUrl DefaultValue="https://via.placeholder.com/64/2b579a/ffffff?text=PG" />
+  
+  <Hosts>
+    <Host Name="Document" />
+  </Hosts>
+  
+  <DefaultSettings>
+    <!-- REPLACE THIS URL WITH YOUR GIST RAW URL -->
+    <SourceLocation DefaultValue="https://github.com/nateboykin/PhotoGallery/blob/main/PhotoGallery.html" />
+  </DefaultSettings>
+  
+  <Permissions>ReadWriteDocument</Permissions>
+  
+</OfficeApp>
