@@ -33,9 +33,6 @@
                     <option value="4">4 Across</option>
                 </select>
             </label>
-            <label>Cell Spacing (px):
-                <input type="number" id="spacing" value="10" min="0" max="50" />
-            </label>
         </div>
     </div>
     <div class="section">
@@ -78,10 +75,9 @@
 </div>
 
 <script>
-    // Preview and store selected images
     const imageInput = document.getElementById('imageInput');
     const preview = document.getElementById('preview');
-    let images = []; // {name, dataURL}
+    let images = [];
 
     imageInput.addEventListener('change', function () {
         images = [];
@@ -99,19 +95,16 @@
         });
     });
 
-    // Caption type change
     document.getElementById('captionType').addEventListener('change', function() {
         document.getElementById('prefixRow').style.display = (this.value === 'prefix') ? '' : 'none';
     });
 
-    // Create gallery and insert into Word
     document.getElementById('insert').onclick = function () {
         if (images.length === 0) {
             showStatus('Please select at least one image.');
             return;
         }
         const cols = parseInt(document.getElementById('cols').value);
-        const spacing = parseInt(document.getElementById('spacing').value);
         const captionsEnabled = document.getElementById('captions').checked;
         const captionType = document.getElementById('captionType').value;
         const captionAlign = document.getElementById('captionAlign').value;
@@ -119,7 +112,6 @@
         let prefix = document.getElementById('prefix').value;
         let startNum = parseInt(document.getElementById('startNum').value) || 1;
 
-        // Build captions
         function getCaption(idx, name) {
             if (!captionsEnabled) return '';
             if (captionType === 'filename') {
@@ -132,31 +124,33 @@
             return '';
         }
 
-        // Build HTML for table
-        let html = `<table style="border-collapse: separate; border-spacing: ${spacing}px;"><tbody>`;
-        for (let i = 0; i < images.length; i += cols) {
-            html += '<tr>';
-            for (let j = 0; j < cols; j++) {
-                const idx = i + j;
-                if (idx < images.length) {
-                    html += `<td style="text-align: center; vertical-align: top;">`;
-                    html += `<img src="${images[idx].dataURL}" style="max-width:130px;max-height:130px;display:block;margin:auto;border-radius:7px;border:1px solid #ccc;">`;
-                    if (captionsEnabled) {
-                        html += `<div style="text-align:${captionAlign};font-size:${fontSize}px;margin-top:2px;">${getCaption(idx, images[idx].name)}</div>`;
-                    }
-                    html += `</td>`;
-                } else {
-                    html += `<td></td>`;
-                }
-            }
-            html += '</tr>';
-        }
-        html += '</tbody></table>';
-
-        // Insert into Word using Office.js API
         Office.onReady(() => {
-            Word.run(function (context) {
-                context.document.body.insertHtml(html, Word.InsertLocation.end);
+            Word.run(async (context) => {
+                const body = context.document.body;
+                for (let i = 0; i < images.length; i++) {
+                    if (i % cols === 0 && i !== 0) {
+                        // Add a line break between rows
+                        body.insertBreak(Word.BreakType.line, Word.InsertLocation.end);
+                    }
+                    const base64Data = images[i].dataURL.split(',')[1]; // remove "data:image/...;base64,"
+                    const insertedImg = body.insertInlinePictureFromBase64(base64Data, Word.InsertLocation.end);
+
+                    if (captionsEnabled) {
+                        const cap = getCaption(i, images[i].name);
+                        if (cap.trim() !== '') {
+                            body.insertParagraph(cap, Word.InsertLocation.end)
+                                .font.set({
+                                    size: fontSize,
+                                    bold: false,
+                                    name: "Arial"
+                                }).alignment = captionAlign;
+                        }
+                    }
+                    // Add a tab to separate images in a row (crude, but works)
+                    if ((i+1) % cols !== 0 && (i+1) < images.length) {
+                        body.insertText('\t', Word.InsertLocation.end);
+                    }
+                }
                 return context.sync();
             }).then(() => {
                 showStatus("Gallery inserted!");
