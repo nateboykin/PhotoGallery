@@ -20,7 +20,7 @@
   
   <DefaultSettings>
     <!-- REPLACE THIS URL WITH YOUR GIST RAW URL -->
-    <SourceLocation DefaultValue="https://gist.githubusercontent.com/nateboykin/9647c7b10dce93861ea270f3ac442512/raw/dffb57547bec06dbb82a2b989728394c88629c62/PhotoGallery.html" />
+    <SourceLocation DefaultValue="https://raw.githubusercontent.com/nateboykin/PhotoGallery/refs/heads/main/PhotoGallery.html" />
   </DefaultSettings>
   
   <Permissions>ReadWriteDocument</Permissions>
