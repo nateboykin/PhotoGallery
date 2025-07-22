@@ -1,0 +1,71 @@
+<div id="container">
+	<h2 style="color: #2b579a;">📸 Photo Gallery</h2>
+
+	<div class="section">
+		<h3>Select Images</h3>
+		<input type="file" id="imageInput" multiple accept="image/*" />
+		<div id="preview"></div>
+	</div>
+
+	<div class="section">
+		<h3>Gallery Layout</h3>
+		<div class="form-row">
+			<label>Columns: 
+                <select id="cols">
+                    <option value="1">1 Across</option>
+                    <option value="2">2 Across</option>
+                    <option value="3" selected>3 Across</option>
+                    <option value="4">4 Across</option>
+                    <option value="5">5 Across</option>
+                    <option value="6">6 Across</option>
+                </select>
+            </label>
+			<label>Cell Spacing (px): 
+                <input type="number" id="spacing" value="10" min="0" max="50" />
+            </label>
+		</div>
+	</div>
+
+	<div class="section">
+		<h3>Caption Settings</h3>
+		<label><input type="checkbox" id="captions" checked /> Show captions below images</label>
+
+		<div id="captionOptions" style="margin-top: 10px;">
+			<div class="form-row">
+				<label>Caption Type:
+                    <select id="captionType">
+                        <option value="filename">Filename (no extension)</option>
+                        <option value="number">Sequential numbers</option>
+                        <option value="prefix">Custom prefix + number</option>
+                    </select>
+                </label>
+			</div>
+
+			<div class="form-row" id="prefixRow" style="display: none;">
+				<label>Prefix: 
+                    <input type="text" id="prefix" value="Image" />
+                </label>
+				<label>Start Number: 
+                    <input type="number" id="startNum" value="1" min="0" />
+                </label>
+			</div>
+
+			<div class="form-row">
+				<label>Caption Alignment:
+                    <select id="captionAlign">
+                        <option value="center" selected>Center</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                    </select>
+                </label>
+				<label>Font Size:
+                    <input type="number" id="fontSize" value="10" min="8" max="16" />
+                </label>
+			</div>
+		</div>
+	</div>
+
+	<button id="insert">Create Photo Gallery</button>
+
+	<div id="status"></div>
+</div>
